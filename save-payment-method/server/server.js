@@ -49,10 +49,44 @@ const authenticate = async (bodyParams) => {
   }
 };
 
+
 const generateAccessToken = async () => {
   const { jsonResponse } = await authenticate();
   return jsonResponse.access_token;
 };
+
+async function generateClientToken(customerId) {
+  if(!customerId) return '';
+  const accessToken = await generateAccessToken();
+  const url = 'https://api-m.sandbox.paypal.com/v1/identity/generate-token';
+  const headers = {
+    'Accept': 'application/json',
+    'Accept-Language': 'en_US',
+    'Authorization': `Bearer ${accessToken}`,
+    'Content-Type': 'application/json'
+  };
+  const body = JSON.stringify({
+    customer_id: customerId
+  });
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: body
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Response generateClientToken:', data);
+    return data.client_token;
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
 
 /**
  * Create an order to start the transaction.
@@ -179,9 +213,11 @@ app.get("/", async (req, res) => {
     const { jsonResponse } = await authenticate({
       target_customer_id: req.query.customerID,
     });
+    const clientToken = await generateClientToken(req.query.customerID);
     res.render("checkout", {
       clientId: PAYPAL_CLIENT_ID,
       userIdToken: jsonResponse.id_token,
+      clientToken: clientToken
     });
   } catch (err) {
     res.status(500).send(err.message);

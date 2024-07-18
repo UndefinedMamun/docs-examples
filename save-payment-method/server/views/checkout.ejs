@@ -8,10 +8,16 @@
   <body>
     <div id="paypal-button-container"></div>
     <p id="result-message"></p>
+    <p>ClientToken: <%= clientToken %> </p>
+
     <script
       src="https://www.paypal.com/sdk/js?client-id=<%= clientId %>"
-      data-user-id-token="<%= userIdToken %>"
+      data-client-token="<%= clientToken %>"
     ></script>
+    <!-- <script
+      src="https://www.paypal.com/sdk/js?client-id=<%= clientId %>"
+      data-user-id-token="<%= userIdToken %>"
+    ></script> -->
     <script src="app.js"></script>
   </body>
 </html>
